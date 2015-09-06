@@ -1,0 +1,45 @@
+package com.starterkit.handlers;
+
+import java.util.Iterator;
+
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.handlers.HandlerUtil;
+
+import com.starterkit.data.Task;
+import com.starterkit.data.TasksRepository;
+import com.starterkit.views.ArchiveView;
+import com.starterkit.views.TodosView;
+
+public class AddToArchiveSelected extends AbstractHandler {
+	private TasksRepository model = TasksRepository.getInstance();
+
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)
+				.getActivePage().getSelection();
+		if (selection != null & selection instanceof IStructuredSelection) {
+			IStructuredSelection strucSelection = (IStructuredSelection) selection;
+			@SuppressWarnings("unchecked")
+			Iterator<Object> iterator = strucSelection.iterator();
+			while(iterator.hasNext()){
+				Object element = iterator.next();
+				if (element instanceof Task) {
+					Task selectedTask = (Task) element;
+					if (selectedTask != null) {
+						model.getToDoTasks().remove(selectedTask);
+						model.getArchivedTasks().add(selectedTask);
+						TodosView.refreshTableViewer();
+						TodosView.removeTaskFromDisplayedTasks(selectedTask);
+						ArchiveView.updateDisplayedTasks();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+}
